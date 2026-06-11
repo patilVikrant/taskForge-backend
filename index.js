@@ -227,6 +227,23 @@ app.put("/tasks/:id", authMiddleware, async (req, res) => {
   }
 });
 
+// DELETE /tasks/:id - Delete a task (Protected)
+app.delete("/tasks/:id", authMiddleware, async (req, res) => {
+  try {
+    const deletedTask = await Task.findByIdAndDelete(req.params.id);
+
+    if (!deletedTask) {
+      return res.status(404).json({ message: "Task not found" });
+    }
+
+    res
+      .status(200)
+      .json({ message: "Task deleted successfully", task: deletedTask });
+  } catch (error) {
+    res.status(500).json({ message: "Server error while deleting task" });
+  }
+});
+
 const PORT = 3000;
 app.listen(PORT, () => {
   console.log(`Server is running on PORT ${PORT}`);
