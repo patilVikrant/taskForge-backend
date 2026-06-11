@@ -207,6 +207,26 @@ app.get("/tasks", authMiddleware, async (req, res) => {
   }
 });
 
+// PUT /tasks/:id - Update a task (Protected)
+app.put("/tasks/:id", authMiddleware, async (req, res) => {
+  try {
+    const updatedTask = await Task.findByIdAndUpdate(req.params.id, req.body, {
+      returnDocument: "after",
+      runValidators: true,
+    });
+
+    if (!updatedTask) {
+      return res.status(404).json({ message: "Task not found" });
+    }
+
+    res
+      .status(200)
+      .json({ message: "Task updated successfully", task: updatedTask });
+  } catch (error) {
+    res.status(500).json({ message: "Server error while updating task" });
+  }
+});
+
 const PORT = 3000;
 app.listen(PORT, () => {
   console.log(`Server is running on PORT ${PORT}`);
