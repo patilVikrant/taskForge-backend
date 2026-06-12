@@ -244,6 +244,24 @@ app.delete("/tasks/:id", authMiddleware, async (req, res) => {
   }
 });
 
+// GET /tasks/:id - Get single task by id (Protected)
+app.get("/tasks/:id", authMiddleware, async (req, res) => {
+  try {
+    const task = await Task.findById(req.params.id)
+      .populate("project", "name")
+      .populate("team", "name")
+      .populate("owners", "name email");
+
+    if (!task) {
+      return res.status(404).json({ message: "Task not found" });
+    }
+
+    res.status(200).json({ message: "Task fetched successfully", task });
+  } catch (error) {
+    res.status(500).json({ message: "Server error while fetching the task" });
+  }
+});
+
 const PORT = 3000;
 app.listen(PORT, () => {
   console.log(`Server is running on PORT ${PORT}`);
