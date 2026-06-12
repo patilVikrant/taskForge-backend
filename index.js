@@ -262,6 +262,37 @@ app.get("/tasks/:id", authMiddleware, async (req, res) => {
   }
 });
 
+// Project routes
+
+// POST /projects - Create a new project (Protected)
+app.post("/projects", authMiddleware, async (req, res) => {
+  try {
+    const newProject = new Project(req.body);
+
+    const savedProject = await newProject.save();
+
+    res
+      .status(201)
+      .json({ message: "Project created successfully", project: savedProject });
+  } catch (error) {
+    res.status(500).json({ message: "Server error whike creating project" });
+  }
+});
+
+// GET /projects - Get all projects (Protected)
+app.get("/projects", authMiddleware, async (req, res) => {
+  try {
+    const projects = await Project.find();
+
+    res.status(200).json({
+      message: "Projects fetched successfully",
+      projects,
+    });
+  } catch (error) {
+    res.status(500).json({ message: "Server error while fetching projects" });
+  }
+});
+
 const PORT = 3000;
 app.listen(PORT, () => {
   console.log(`Server is running on PORT ${PORT}`);
