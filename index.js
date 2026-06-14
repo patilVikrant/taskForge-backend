@@ -293,6 +293,38 @@ app.get("/projects", authMiddleware, async (req, res) => {
   }
 });
 
+// Team routes
+
+// POST /teams - Create a new team (Protected)
+app.post("/teams", authMiddleware, async (req, res) => {
+  try {
+    const newTeam = new Team(req.body);
+
+    const savedTeam = await newTeam.save();
+
+    res.status(201).json({
+      message: "Team created successfully",
+      team: savedTeam,
+    });
+  } catch (error) {
+    res.status(500).json({ message: "Server error while creating team" });
+  }
+});
+
+// GET /teams - Get all teams (Protected)
+app.get("/teams", authMiddleware, async (req, res) => {
+  try {
+    const teams = await Team.find();
+
+    res.status(200).json({
+      message: "Teams fetched successfully",
+      teams,
+    });
+  } catch (error) {
+    res.status(500).json({ message: "Server error while fetching teams" });
+  }
+});
+
 const PORT = 3000;
 app.listen(PORT, () => {
   console.log(`Server is running on PORT ${PORT}`);
