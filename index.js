@@ -325,6 +325,34 @@ app.get("/teams", authMiddleware, async (req, res) => {
   }
 });
 
+// Report routes
+
+//  GET /report/last-week - Tasks completed in last 7 days (Protected)
+app.get("/report/last-week", authMiddleware, async (req, res) => {
+  try {
+    const sevenDaysAgo = new Date();
+    sevenDaysAgo.setDate(sevenDaysAgo.getDate() - 7);
+
+    const tasks = await Task.find({
+      status: "Completed",
+      updatedAt: { $gte: sevenDaysAgo },
+    })
+      .populate("project", "name")
+      .populate("team", "name")
+      .populate("owners", "name email");
+
+    res.status(200).json({
+      message: "Last week completed tasks fetched successfully",
+      count: tasks.length,
+      tasks,
+    });
+  } catch (error) {
+    res
+      .status(500)
+      .json({ message: "Server error while fetching last week report" });
+  }
+});
+
 const PORT = 3000;
 app.listen(PORT, () => {
   console.log(`Server is running on PORT ${PORT}`);
