@@ -363,17 +363,61 @@ app.get("/report/pending", authMiddleware, async (req, res) => {
       0,
     );
 
-    res
-      .status(200)
-      .json({
-        message:
-          "Total pending days of work for all tasks fetched successfully",
-        totalPendingDays,
-      });
+    res.status(200).json({
+      message: "Total pending days of work for all tasks fetched successfully",
+      totalPendingDays,
+    });
   } catch (error) {
     res
       .status(500)
       .json({ message: "Server error while fetching pending report" });
+  }
+});
+
+// GET /report/closed-tasks - Fetch the number of tasks closed by team, owner or project (Protected)
+app.get("/report/closed-tasks", authMiddleware, async (req, res) => {
+  try {
+    const completedTasks = await Task.find({ status: "Completed" })
+      .populate("project", "name")
+      .populate("team", "name")
+      .populate("owners", "name");
+
+    const byTeam = {};
+    const byProject = {};
+    const byOwner = {};
+
+    // group by team
+    completedTasks.forEach((task) => {
+      const teamName = task.team?.name || "Unknown";
+      byTeam[teamName] = (byTeam[teamName] || 0) + 1;
+    });
+
+    // group by project
+    completedTasks.forEach((task) => {
+      const projectName = task.project?.name || "Unknown";
+      byProject[projectName] = (byProject[projectName] || 0) + 1;
+    });
+
+    // group by owner
+    completedTasks.forEach((task) => {
+      task.owners.forEach((owner) => {
+        const ownerName = owner?.name || "Unknown";
+        byOwner[ownerName] = (byOwner[ownerName] || 0) + 1;
+      });
+    });
+
+    res
+      .status(200)
+      .json({
+        message: "Closed tasks report fetched successfully",
+        byTeam,
+        byProject,
+        byOwner,
+      });
+  } catch (error) {
+    res
+      .status(500)
+      .json({ message: "Server error while fetching closed tasks report" });
   }
 });
 
