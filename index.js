@@ -353,6 +353,30 @@ app.get("/report/last-week", authMiddleware, async (req, res) => {
   }
 });
 
+// GET /report/pending - Fetch total days of work pending for all tasks (Protected)
+app.get("/report/pending", authMiddleware, async (req, res) => {
+  try {
+    const pendingTasks = await Task.find({ status: { $ne: "Completed" } });
+
+    const totalPendingDays = pendingTasks.reduce(
+      (acc, currValue) => acc + currValue.timeToComplete,
+      0,
+    );
+
+    res
+      .status(200)
+      .json({
+        message:
+          "Total pending days of work for all tasks fetched successfully",
+        totalPendingDays,
+      });
+  } catch (error) {
+    res
+      .status(500)
+      .json({ message: "Server error while fetching pending report" });
+  }
+});
+
 const PORT = 3000;
 app.listen(PORT, () => {
   console.log(`Server is running on PORT ${PORT}`);
