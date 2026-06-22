@@ -139,6 +139,16 @@ app.get("/auth/me", authMiddleware, async (req, res) => {
   }
 });
 
+// GET /users : Get all users (Protected route)
+app.get("/users", authMiddleware, async (req, res) => {
+  try {
+    const users = await User.find().select("-password");
+    res.status(200).json({ message: "Users fetched successfully", users });
+  } catch (error) {
+    res.status(500).json({ message: "Server error while fetching users" });
+  }
+});
+
 // Task Routes
 
 // POST /tasks : Create a new task. (Protected route)
@@ -406,14 +416,12 @@ app.get("/report/closed-tasks", authMiddleware, async (req, res) => {
       });
     });
 
-    res
-      .status(200)
-      .json({
-        message: "Closed tasks report fetched successfully",
-        byTeam,
-        byProject,
-        byOwner,
-      });
+    res.status(200).json({
+      message: "Closed tasks report fetched successfully",
+      byTeam,
+      byProject,
+      byOwner,
+    });
   } catch (error) {
     res
       .status(500)
