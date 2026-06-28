@@ -7,7 +7,7 @@ const authMiddleware = require("./middleware/authMiddleware");
 const app = express();
 
 const corsOptions = {
-  origin: "*",
+  origin: ["http://localhost:5173", "https://task-forge-fawn.vercel.app"],
   credentials: true,
   optionSuccessStatus: 200,
 };
