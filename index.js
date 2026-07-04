@@ -223,7 +223,10 @@ app.put("/tasks/:id", authMiddleware, async (req, res) => {
     const updatedTask = await Task.findByIdAndUpdate(req.params.id, req.body, {
       returnDocument: "after",
       runValidators: true,
-    });
+    })
+      .populate("project", "name")
+      .populate("team", "name")
+      .populate("owners", "name email");
 
     if (!updatedTask) {
       return res.status(404).json({ message: "Task not found" });
