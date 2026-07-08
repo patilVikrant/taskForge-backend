@@ -507,7 +507,13 @@ app.put("/auth/change-password", authMiddleware, async (req, res) => {
 // DELETE /auth/delete-account - Delete account (Protected)
 app.delete("/auth/delete-account", authMiddleware, async (req, res) => {
   try {
-    await User.findByIdAndDelete(req.user.userId);
+    const userId = req.user.userId;
+
+    // Remove users from owners array
+    await Task.updateMany({ owners: userId }, { $pull: { owners: userId } });
+
+    // Delete user
+    await User.findByIdAndDelete(userId);
     res.status(200).json({ message: "Account deleted successfully" });
   } catch (error) {
     res
