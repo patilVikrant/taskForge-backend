@@ -445,6 +445,77 @@ app.get("/report/closed-tasks", authMiddleware, async (req, res) => {
   }
 });
 
+// PUT -/auth/update-profile - Update name and email (Protected)
+app.put("/auth/update-profile", authMiddleware, async (req, res) => {
+  try {
+    const { name, email } = req.body;
+
+    // check if email already exist
+    const existingUser = await User.findOne({
+      email,
+      _id: { $ne: req.user.userId },
+    });
+
+    if (existingUser) {
+      return res
+        .status(400)
+        .json({ message: "Email already in use by another account" });
+    }
+
+    const updatedUser = await User.findByIdAndUpdate(
+      req.user.userId,
+      { name, email },
+      { returnDocument: "after", runValidators: true },
+    ).select("-password");
+
+    res
+      .status(200)
+      .json({ message: "Profile updated successfully", user: updatedUser });
+  } catch (error) {
+    res
+      .status(500)
+      .json({ message: "Server error while updating the profile" });
+  }
+});
+
+// PUT /auth/change-password - Change password (Protected)
+app.put("/auth/change-password", authMiddleware, async (req, res) => {
+  try {
+    const { currentPassword, newPassword } = req.body;
+
+    const user = await User.findById(req.user.userId);
+
+    const isMatch = await bcrypt.compare(currentPassword, user.password);
+
+    if (!isMatch) {
+      return res.status(400).json({ message: "Current password is incorrect" });
+    }
+
+    const salt = await bcrypt.genSalt(10);
+    const hashedPassword = await bcrypt.hash(newPassword, salt);
+
+    await User.findByIdAndUpdate(req.user.userId, { password: hashedPassword });
+
+    res.status(200).json({ message: "Password changed successfully" });
+  } catch (error) {
+    res
+      .status(500)
+      .json({ message: "Server error while changing the password" });
+  }
+});
+
+// DELETE /auth/delete-account - Delete account (Protected)
+app.delete("/auth/delete-account", authMiddleware, async (req, res) => {
+  try {
+    await User.findByIdAndDelete(req.user.userId);
+    res.status(200).json({ message: "Account deleted successfully" });
+  } catch (error) {
+    res
+      .status(500)
+      .json({ message: "Server error while deleting the account" });
+  }
+});
+
 const PORT = 3000;
 app.listen(PORT, () => {
   console.log(`Server is running on PORT ${PORT}`);
